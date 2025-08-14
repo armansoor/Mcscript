@@ -1,0 +1,178 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Minecraft Release Companion</title>
+  <meta name="description" content="Track Minecraft Java Edition releases & snapshots, get alerts, and explore version history." />
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+  <!--
+    Minecraft Release Companion
+    Files: index.html, styles.css, app.js
+    Drop into a folder and open index.html or host on GitHub Pages.
+  -->
+
+  <header class="topbar">
+    <div class="wrap top-inner">
+      <div class="brand">
+        <div class="logo">⛏️</div>
+        <div>
+          <h1>Minecraft Release Companion</h1>
+          <p class="sub">Live manifest watcher • history explorer • alerts & countdowns</p>
+        </div>
+      </div>
+
+      <div class="top-actions">
+        <button id="checkNow" class="btn primary">Check now</button>
+        <button id="notifyBtn" class="btn">Enable notifications</button>
+        <button id="themeBtn" class="btn ghost">Theme</button>
+        <button id="settingsBtn" class="btn ghost">Settings</button>
+      </div>
+    </div>
+  </header>
+
+  <main class="wrap main-grid">
+    <!-- Overview card -->
+    <section class="card overview">
+      <div class="stats">
+        <div class="stat">
+          <h3>Latest Release</h3>
+          <div class="value" id="latestRelease">—</div>
+          <div class="muted" id="latestReleaseDate"></div>
+        </div>
+        <div class="stat">
+          <h3>Latest Snapshot</h3>
+          <div class="value" id="latestSnapshot">—</div>
+          <div class="muted" id="latestSnapshotDate"></div>
+        </div>
+        <div class="stat">
+          <h3>Countdown</h3>
+          <div class="value" id="countdownDisplay">—</div>
+          <div class="muted">Set predicted date in Settings</div>
+        </div>
+      </div>
+
+      <div class="hero-actions">
+        <div id="lastChecked" class="muted">Last checked: —</div>
+        <div class="spacer"></div>
+        <button id="playTestSound" class="btn ghost">Test sound</button>
+      </div>
+
+      <div class="visual-row">
+        <div id="alertVisual" class="alert-visual" title="New-version animation"></div>
+      </div>
+    </section>
+
+    <!-- Versions / Explorer -->
+    <section class="card explorer">
+      <div class="card-head">
+        <h2>Version History Explorer</h2>
+        <div class="toolbar">
+          <input id="search" placeholder="Filter by version or type (e.g. 1.20, snapshot)" />
+          <select id="typeFilter">
+            <option value="all">All</option>
+            <option value="release">Releases</option>
+            <option value="snapshot">Snapshots</option>
+          </select>
+          <button id="clearSearch" class="icon">✕</button>
+        </div>
+      </div>
+
+      <div class="tablewrap">
+        <table id="versionsTable">
+          <thead>
+            <tr><th>Version</th><th>Type</th><th>Published</th><th>Notes</th></tr>
+          </thead>
+          <tbody id="versionsBody"></tbody>
+        </table>
+      </div>
+    </section>
+
+    <!-- Footer / small -->
+    <section class="card settings-short">
+      <h3>Quick settings</h3>
+      <label>Auto-check interval (min)
+        <input id="interval" type="number" min="1" max="60" />
+      </label>
+      <label><input id="autoCheck" type="checkbox" /> Enable auto-check</label>
+      <label><input id="compactMode" type="checkbox" /> Compact table</label>
+      <div style="margin-top:10px;">
+        <button id="openSettings" class="btn">Open full settings</button>
+      </div>
+    </section>
+  </main>
+
+  <!-- Settings modal -->
+  <div id="overlay" class="overlay hidden"></div>
+  <aside id="settings" class="modal hidden" role="dialog" aria-modal="true" aria-labelledby="settingsTitle">
+    <header class="modal-head">
+      <h2 id="settingsTitle">Settings & advanced</h2>
+      <button id="closeSettings" class="icon">✕</button>
+    </header>
+
+    <div class="modal-body">
+      <section class="setting-block">
+        <h4>Appearance</h4>
+        <div class="theme-grid" id="themeList">
+          <button class="theme-swatch" data-theme="dark">Dark</button>
+          <button class="theme-swatch" data-theme="light">Light</button>
+          <button class="theme-swatch" data-theme="creeper">Creeper</button>
+          <button class="theme-swatch" data-theme="ender">Ender</button>
+          <button class="theme-swatch" data-theme="grass">Grass</button>
+          <button class="theme-swatch" data-theme="stone">Stone</button>
+          <button class="theme-swatch" data-theme="sand">Sand</button>
+        </div>
+      </section>
+
+      <section class="setting-block">
+        <h4>Auto-checking</h4>
+        <label>Interval (minutes)
+          <input id="settingsInterval" type="number" min="1" max="60" />
+        </label>
+        <label><input id="settingsAutoCheck" type="checkbox" /> Enable auto-check</label>
+        <small class="muted">Auto-check runs in the browser while the page/PWA is open.</small>
+      </section>
+
+      <section class="setting-block">
+        <h4>Countdown</h4>
+        <label>Predicted release date (optional)
+          <input id="predictedDate" type="datetime-local" />
+        </label>
+        <small class="muted">If you have an expected date, set it here to see a live countdown.</small>
+      </section>
+
+      <section class="setting-block">
+        <h4>Alerts & Integrations</h4>
+        <label>Enable sound alert <input id="soundOn" type="checkbox" /></label>
+        <label>Enable desktop notifications <input id="notifOn" type="checkbox" /></label>
+        <label>Discord / webhook URL (optional)
+          <input id="webhookUrl" placeholder="https://discord.com/api/webhooks/..." />
+        </label>
+        <small class="muted">If a webhook is provided, the app will POST a small JSON payload when a new version is detected. CORS may apply.</small>
+      </section>
+
+      <div class="modal-footer">
+        <button id="saveSettings" class="btn primary">Save settings</button>
+        <button id="resetSettings" class="btn ghost">Reset</button>
+      </div>
+    </div>
+  </aside>
+
+  <!-- Version detail modal -->
+  <div id="versionModal" class="modal small hidden" role="dialog" aria-modal="true">
+    <header class="modal-head">
+      <h3 id="versionTitle">Version</h3>
+      <button id="closeVersion" class="icon">✕</button>
+    </header>
+    <div class="modal-body" id="versionBody"></div>
+    <div class="modal-footer">
+      <button id="openArticle" class="btn">Open Minecraft news</button>
+      <button id="closeVersion2" class="btn ghost">Close</button>
+    </div>
+  </div>
+
+  <script src="app.js" defer></script>
+</body>
+</html>
